@@ -26,13 +26,8 @@
         <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Sex"
-            android:id="@+id/edit_sex"/>
-        <EditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="Birth year"
-            android:id="@+id/edit_birthyear"/>
+            android:hint="Email"
+            android:id="@+id/edit_email"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -68,7 +63,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
-            android:inputType="text|textMultiLine"
             android:id="@+id/txtJsonData"/>
         <Button
             android:layout_width="wrap_content"

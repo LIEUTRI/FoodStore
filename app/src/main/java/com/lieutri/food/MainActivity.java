@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -19,25 +18,17 @@ import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.HttpCookie;
 import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     TextView txtJson, txtJsonData;
-    EditText etName, etSex, etBirthyear;
+    EditText etName, etEmail;
     Button btnAdd, btnRead;
 
     java.net.CookieManager msCookieManager = new java.net.CookieManager();
@@ -50,23 +41,9 @@ public class MainActivity extends AppCompatActivity {
         txtJson = findViewById(R.id.txtJson);
         txtJsonData = findViewById(R.id.txtJsonData);
         etName = findViewById(R.id.edit_name);
-        etSex = findViewById(R.id.edit_sex);
-        etBirthyear = findViewById(R.id.edit_birthyear);
+        etEmail = findViewById(R.id.edit_email);
         btnAdd = findViewById(R.id.button_add);
         btnRead = findViewById(R.id.button_read);
-
-//        CookieManager cookieManager = new CookieManager();
-//
-//        HttpCookie cookie = new HttpCookie("lang", "vi");
-//        cookie.setDomain("dev.lieutri.ml");
-//        cookie.setPath("/");
-//        cookie.setVersion(0);
-//        try {
-//            msCookieManager.getCookieStore().add(new URI("http://dev.lieutri.ml/connectdb.php/"), cookie);
-//        } catch (URISyntaxException e) {
-//            e.printStackTrace();
-//        }
-//        CookieHandler.setDefault(msCookieManager);
 
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,45 +73,36 @@ public class MainActivity extends AppCompatActivity {
             HttpURLConnection urlConnection = null;
             //http post
             try {
-                URL url = new URL("http://dev.lieutri.ml/adddata.php");
+                URL url = new URL("http://foodstore.ddns.net:8080/demo/add");
 
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("name", etName.getText().toString());
-                jsonObject.put("sex", etSex.getText().toString());
-                jsonObject.put("birthyear", etBirthyear.getText().toString());
+                jsonObject.put("email", etEmail.getText().toString());
                 String data = jsonObject.toString();
 
                 urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
-                urlConnection.setRequestProperty("X-Requested-With", "XMLHttpRequest");
                 urlConnection.setRequestMethod("POST");
+                urlConnection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
+                urlConnection.setRequestProperty("Accept", "text/plain;charset=utf-8");
+//                urlConnection.setRequestProperty("X-Requested-With", "XMLHttpRequest");
                 urlConnection.setDoOutput(true);
-                urlConnection.setDoInput(true);
-                urlConnection.setRequestProperty("Cookie", "__test=1e1b75b941f1b69a63d70d7a6aaefdba");
+//                urlConnection.setRequestProperty("Cookie", "__test=1e1b75b941f1b69a63d70d7a6aaefdba");
                 urlConnection.setReadTimeout(10000);
                 urlConnection.setConnectTimeout(15000);
                 urlConnection.setFixedLengthStreamingMode(data.getBytes().length);
                 urlConnection.connect();
 
-//                Map<String, List<String>> headerFields = urlConnection.getHeaderFields();
-//                List<String> cookiesHeader = headerFields.get(COOKIES_HEADER);
-//                if (cookiesHeader != null) {
-//                    for (String cookie : cookiesHeader) {
-//                        msCookieManager.getCookieStore().add(new URI("http://dev.lieutri.ml/adddata.php"), HttpCookie.parse(cookie).get(0));
-//                    }
-//                }
-//
-//                if (msCookieManager.getCookieStore().getCookies().size() > 0) {
-//                    // While joining the Cookies, use ',' or ';' as needed. Most of the servers are using ';'
-//                    urlConnection.setRequestProperty("Cookie", TextUtils.join(";",  msCookieManager.getCookieStore().getCookies()));
-//                    Log.i("cookie", TextUtils.join(";",  msCookieManager.getCookieStore().getCookies()));
-//                }
-
                 os = new BufferedOutputStream(urlConnection.getOutputStream());
                 os.write(data.getBytes());
                 os.flush();
 
-                is = urlConnection.getInputStream();
+                int statusCode = urlConnection.getResponseCode();
+                Log.i("statusCode", statusCode+"");
+                if (statusCode >= 200 && statusCode < 400){
+                    is = urlConnection.getInputStream();
+                } else {
+                    is = urlConnection.getErrorStream();
+                }
                 reader = new BufferedReader(new InputStreamReader(is));
                 StringBuilder buffer = new StringBuilder();
                 String line;
@@ -162,12 +130,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            try {
-                JSONObject json = new JSONObject(s);
-                Toast.makeText(MainActivity.this, json.getString("result"), Toast.LENGTH_SHORT).show();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            Toast.makeText(MainActivity.this, s, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -189,10 +152,10 @@ public class MainActivity extends AppCompatActivity {
             BufferedReader reader = null;
 
             try {
-                URL url = new URL("http://dev.lieutri.ml/readdata.php");
+                URL url = new URL("http://foodstore.ddns.net:8080/demo/all");
                 connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("Cookie", "__test=1e1b75b941f1b69a63d70d7a6aaefdba");
+                connection.setRequestMethod("GET");
+                //connection.setRequestProperty("Cookie", "__test=1e1b75b941f1b69a63d70d7a6aaefdba");
                 connection.connect();
 
 
@@ -236,19 +199,19 @@ public class MainActivity extends AppCompatActivity {
             //parse json data
             if (result != null){
                 try {
+                    StringBuilder data = new StringBuilder();
                     JSONArray jArray = new JSONArray(result);
                     for (int i = 0; i < jArray.length(); i++) {
                         JSONObject json_data = jArray.getJSONObject(i);
 
-                        txtJsonData.append("\nid: " + json_data.getInt("id") + "\n" + "name: " + json_data.getString("name")
-                                + "\n" + "sex: " + json_data.getString("sex") + "\n" + "birth year: " + json_data.getString("birthyear"));
+                        data.append("\nid: ").append(json_data.getInt("id")).append("\n").append("name: ").append(json_data.getString("name")).append("\n").append("email: ").append(json_data.getString("email"));
 
                         Log.i("log_tag", "id: " + json_data.getInt("id") +
                                 ", name: " + json_data.getString("name") +
-                                ", sex: " + json_data.getInt("sex") +
-                                ", birthyear: " + json_data.getInt("birthyear")
+                                ", email: " + json_data.getString("email")
                         );
                     }
+                    txtJsonData.setText(data.toString());
                 } catch (JSONException e) {
                     Log.e("log_tag", "Error parsing data " + e.toString());
                 }
